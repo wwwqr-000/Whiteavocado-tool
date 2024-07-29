@@ -4,3 +4,6 @@ obj/Debug/main.o
 Whiteavocado-tool.cbp
 Whiteavocado-tool.depend
 Whiteavocado-tool.layout
+bin/Debug/tool.exe
+tool.cbp
+tool.depend
