@@ -16,6 +16,12 @@
 
 using json = nlohmann::json;
 
+std::vector<std::thread> threads;
+bool update = true;
+bool active = true;
+int beginX = 100;
+int beginY = 100;
+
 HMODULE WDll = LoadLibraryExW(L"whiteavocado64.dll", nullptr, 0);
 
 using DR = void (__cdecl*)(int, int, int, int, int, int, int, int, bool);
@@ -28,13 +34,17 @@ DP const drawPixel = reinterpret_cast<DP>(GetProcAddress(WDll, "drawPixel"));
 MB const msgBox = reinterpret_cast<MB>(GetProcAddress(WDll, "msgBox"));
 CS const cls = reinterpret_cast<CS>(GetProcAddress(WDll, "cls"));
 
-std::string msgRes;
-
-int x;
-
 void drawScreen() {
-    drawLine(x, 100, x + 100, 100, 1, 255, 0, 0, false);
-    x += 10;
+    drawLine(10, 100, 10 + 100, 100, 1, 255, 0, 0, false);
+}
+
+void tick() {
+    while (active) {
+        if (update) {
+            update = false;
+            drawScreen();
+        }
+    }
 }
 
 void free() {
@@ -42,11 +52,8 @@ void free() {
 }
 
 int main() {
-    while (true) {
-        Sleep(50);
-        drawScreen();
-        Sleep(50);
-        cls();
+    while (active) {
+        tick();
     }
     free();
     return 0;
