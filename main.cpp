@@ -15,13 +15,23 @@ using json = nlohmann::json;
 std::vector<std::thread> threads;
 bool update = true;
 bool active = true;
-int beginX = 100;
-int beginY = 100;
 
 HMODULE WDll = LoadLibraryExW(L"whiteavocado64.dll", nullptr, 0);
 
-auto dpcn(std::string fName) {
+struct windowFrame {
+    int beginX, beginY, endX, endY;
+    std::string title;
+    bool refresh;
+};
+
+windowFrame frame;
+
+auto dpcn(std::string fName) {//DLL function process addres from function name
     return GetProcAddress(WDll, fName.c_str());
+}
+
+void free() {
+    FreeLibrary(WDll);
 }
 
 using DR = void (__cdecl*)(int, int, int, int, int, int, int, int, bool);
@@ -34,8 +44,12 @@ DP const drawPixel = reinterpret_cast<DP>(dpcn("drawPixel"));
 MB const msgBox = reinterpret_cast<MB>(dpcn("msgBox"));
 CS const cls = reinterpret_cast<CS>(dpcn("cls"));
 
-void drawScreen() {
+void drawWindowFrame() {
     drawLine(10, 100, 10 + 100, 100, 1, 255, 0, 0, false);
+}
+
+void drawScreen() {
+    drawWindowFrame();
 }
 
 void tick() {
@@ -45,10 +59,6 @@ void tick() {
             drawScreen();
         }
     }
-}
-
-void free() {
-    FreeLibrary(WDll);
 }
 
 int main() {
