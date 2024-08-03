@@ -8,3 +8,5 @@ bin/Debug/tool.exe
 tool.cbp
 tool.depend
 tool.layout
+bin/Debug/wwwqr.exe
+bin/Debug/whiteavocado64.dll
