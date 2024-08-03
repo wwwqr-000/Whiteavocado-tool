@@ -73,12 +73,40 @@ void drawScreen() {
     drawWindowFrame();
 }
 
-void buttonTrigger(int x, int y) {
+bool buttonTrigger(int &x, int &y) {
     for (auto& button : windowFrame.getButtons()) {
         if (x >= button.getBox().left && x <= button.getBox().right && y >= button.getBox().top && y <= button.getBox().bottom) {
             button.click();
         }
     }
+}
+
+void close() {
+    std::cout << "Close\n";
+}
+
+void createButtons() {
+    RECT closeBox;
+    closeBox.left = windowFrame.getEX() - 20;
+    closeBox.right = windowFrame.getEX();
+    closeBox.top = windowFrame.getBY();
+    closeBox.bottom = windowFrame.getBY() + 20;
+    button closeButton(closeBox, close);
+    windowFrame.getButtons().emplace_back(closeButton);
+}
+
+void windowFrameSetup() {
+    createButtons();
+}
+
+void updatePositions(int &x, int &y) {
+    windowFrame.setEX((windowFrame.getEX() - windowFrame.getBX()) + x);
+    windowFrame.setEY((windowFrame.getEY() - windowFrame.getBY()) + y);
+    windowFrame.setBX(x);
+    windowFrame.setBY(y);
+
+    windowFrame.getButtons().clear();
+    createButtons();
 }
 
 void mouseBLThread() {//Mousebutton listener callback func
@@ -88,17 +116,14 @@ void mouseBLThread() {//Mousebutton listener callback func
         int x, y;
         getCursorPos(x, y);
         if (index == 0) {//Left button down
+            buttonTrigger(x, y);
             if (x >= windowFrame.getBX() && x <= windowFrame.getEX() && y >= windowFrame.getBY() && y <= (windowFrame.getBY() + 22)) {
                 validDragPos = true;
             }
         }
         else if (index == 3) {//Left button up
             if (validDragPos) {
-                windowFrame.setEX((windowFrame.getEX() - windowFrame.getBX()) + x);
-                windowFrame.setEY((windowFrame.getEY() - windowFrame.getBY()) + y);
-                windowFrame.setBX(x);
-                windowFrame.setBY(y);
-                cls();
+                updatePositions(x, y);
                 Sleep(20);
                 cls();
             }
@@ -118,6 +143,7 @@ void tick() {
 
 int main() {
     windowFrame = frame(10, 10, 710, 510, "Tool");
+    windowFrameSetup();
     threads.emplace_back([]{ mouseBLThread(); });
     while (active) {
         tick();

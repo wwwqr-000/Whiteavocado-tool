@@ -7,7 +7,7 @@ class button {
 
     public:
         button() {}
-        button(RECT box, std::function<void()> &func) : clickCallback(func), box(box) {}
+        button(RECT box, std::function<void()> func) : clickCallback(func), box(box) {}
         void click() { clickCallback(); }
         RECT& getBox() { return this->box; }
 };
