@@ -9,8 +9,8 @@
 
 #include "classes/json.hpp"
 #include "classes/dimensions.hpp"
-#include "classes/frame.hpp"
 #include "classes/button.hpp"
+#include "classes/frame.hpp"
 
 using json = nlohmann::json;
 
@@ -71,6 +71,14 @@ void drawWindowFrame() {
 
 void drawScreen() {
     drawWindowFrame();
+}
+
+void buttonTrigger(int x, int y) {
+    for (auto& button : windowFrame.getButtons()) {
+        if (x >= button.getBox().left && x <= button.getBox().right && y >= button.getBox().top && y <= button.getBox().bottom) {
+            button.click();
+        }
+    }
 }
 
 void mouseBLThread() {//Mousebutton listener callback func
