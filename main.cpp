@@ -88,12 +88,12 @@ void close() {//The close calllback for the whole application
     active = false;
     update = false;
     cls();
-    Sleep(50);
+    Sleep(100);
     cls();
 
 }
 
-void createButtons() {
+void createDefaultButtons() {
     RECT closeBox;
     closeBox.left = windowFrame.getEX() - 20;
     closeBox.right = windowFrame.getEX();
@@ -104,7 +104,7 @@ void createButtons() {
 }
 
 void windowFrameSetup() {
-    createButtons();
+    createDefaultButtons();
 }
 
 void updatePositions(int &x, int &y) {
@@ -114,7 +114,7 @@ void updatePositions(int &x, int &y) {
     windowFrame.setBY(y);
 
     windowFrame.getButtons().clear();
-    createButtons();
+    createDefaultButtons();
 }
 
 void mouseBLThread() {//Mousebutton listener callback func
