@@ -21,6 +21,11 @@ bool update = true;
 bool active = true;
 bool validDragPos = false;//If the mouse drag is in the title bar of the window.
 HMODULE WDll = LoadLibraryExW(L"whiteavocado64.dll", nullptr, 0);
+
+//Pages
+frame infoFramePage;
+//
+
 //
 
 auto dpcn(std::string fName) {//DLL function process address from function name
@@ -68,8 +73,13 @@ void drawWindowFrame() {
     //
 }
 
+void infoPageSetup() {
+
+}
+
 void drawScreen() {
     drawWindowFrame();
+
 }
 
 void buttonTrigger(int &x, int &y) {
@@ -80,7 +90,7 @@ void buttonTrigger(int &x, int &y) {
     }
 }
 
-void close() {//The close calllback for the whole application
+void close() {//The close callback for the whole application
     std::string msgResult;
     beep("normal");
     msgBox("Whiteavocado tool", "Are you sure you want to close whiteavocado tool?", "yn", "q", msgResult);
