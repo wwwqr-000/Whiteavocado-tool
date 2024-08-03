@@ -10,6 +10,7 @@
 #include "classes/json.hpp"
 #include "classes/dimensions.hpp"
 #include "classes/frame.hpp"
+#include "classes/button.hpp"
 
 using json = nlohmann::json;
 
