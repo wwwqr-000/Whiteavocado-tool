@@ -32,25 +32,24 @@ void free() {
 }
 
 using DR = void (__cdecl*)(int, int, int, int, int, int, int, int, bool);
-using DP = void (__cdecl*)(int, int, int, int, int, bool);
 using MB = void (__cdecl*)(const char*, const char*, const char*, const char*, std::string&);
 using CS = void (__cdecl*)();
-using GR = void (__cdecl*)(int&, int&);
+using GCP = void (__cdecl*)(int&, int&);
 using FR = void (__cdecl*)(int, int, int, int, int, int, int);
 using DT = void (__cdecl*)(const char*, int, int, int, int, int, int, int, int, int, int, int);
 using GSN = const char* (__cdecl*)();
 using BL = const int (__cdecl*)(std::string&);
+using BP = const void (__cdecl*)(const char*);
 
 DR const drawLine = reinterpret_cast<DR>(dpcn("drawLine"));
-DP const drawPixel = reinterpret_cast<DP>(dpcn("drawPixel"));
 MB const msgBox = reinterpret_cast<MB>(dpcn("msgBox"));
 CS const cls = reinterpret_cast<CS>(dpcn("cls"));
-GR const getScreenResolution = reinterpret_cast<GR>(dpcn("getScreenResolution"));
 FR const fillRect = reinterpret_cast<FR>(dpcn("fillRect"));
 DT const drawTxt = reinterpret_cast<DT>(dpcn("drawTxt"));
 GSN const getSelfName = reinterpret_cast<GSN>(dpcn("getSelfName"));
 BL const buttonListener = reinterpret_cast<BL>(dpcn("buttonListener"));
-GR const getCursorPos = reinterpret_cast<GR>(dpcn("getCursorPos"));
+GCP const getCursorPos = reinterpret_cast<GCP>(dpcn("getCursorPos"));
+BP const beep = reinterpret_cast<BP>(dpcn("beep"));
 
 void drawBox(RECT box, point3 rgb) {
     drawLine(box.left, box.top, box.right, box.top, 1, rgb.x_i, rgb.y_i, rgb.z_i, false);
@@ -73,7 +72,7 @@ void drawScreen() {
     drawWindowFrame();
 }
 
-bool buttonTrigger(int &x, int &y) {
+void buttonTrigger(int &x, int &y) {
     for (auto& button : windowFrame.getButtons()) {
         if (x >= button.getBox().left && x <= button.getBox().right && y >= button.getBox().top && y <= button.getBox().bottom) {
             button.click();
@@ -81,8 +80,17 @@ bool buttonTrigger(int &x, int &y) {
     }
 }
 
-void close() {
-    std::cout << "Close\n";
+void close() {//The close calllback for the whole application
+    std::string msgResult;
+    beep("normal");
+    msgBox("Whiteavocado tool", "Are you sure you want to close whiteavocado tool?", "yn", "q", msgResult);
+    if (msgResult != "yes") { return; }
+    active = false;
+    update = false;
+    cls();
+    Sleep(50);
+    cls();
+
 }
 
 void createButtons() {
@@ -91,7 +99,7 @@ void createButtons() {
     closeBox.right = windowFrame.getEX();
     closeBox.top = windowFrame.getBY();
     closeBox.bottom = windowFrame.getBY() + 20;
-    button closeButton(closeBox, close);
+    button closeButton(closeBox, []() { close(); });
     windowFrame.getButtons().emplace_back(closeButton);
 }
 
@@ -134,10 +142,7 @@ void mouseBLThread() {//Mousebutton listener callback func
 
 void tick() {
     while (active) {
-        if (update) {
-            //update = false;
-            drawScreen();
-        }
+        if (update) { drawScreen(); }
     }
 }
 
@@ -147,6 +152,9 @@ int main() {
     threads.emplace_back([]{ mouseBLThread(); });
     while (active) {
         tick();
+    }
+    for (auto& thread : threads) {
+        thread.join();
     }
     free();
     return 0;
