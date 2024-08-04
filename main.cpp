@@ -100,36 +100,6 @@ void clearFramePageVectors(frame& in) {
     in.getLineElements().clear();
 }
 
-//Frame Pages
-void homePageSetup() {
-    homeFramePage = windowFrame;
-    clearFramePageVectors(homeFramePage);
-    homeFramePage.setTitle("Home");
-
-    //Txt
-    RECT wBox;
-    wBox.left = homeFramePage.getBX() + 2 + 10;
-    wBox.top = homeFramePage.getBY() + 50;
-    wBox.right = homeFramePage.getEX();
-    wBox.bottom = homeFramePage.getBY() + 100;
-    text wTxt("Welcome to the whiteavocado tool!", wBox, point3(0, 0, 0), point3(0, 255, 0), 12);
-    homeFramePage.getTextElements().emplace_back(wTxt);
-    //
-
-    //Line test
-    int yBegin = 102;
-    for (int i = 0; i < 4; i++, yBegin += 50) {
-        RECT lilBox;
-        lilBox.left = homeFramePage.getBX() + 2;
-        lilBox.top = homeFramePage.getBY() + yBegin;
-        lilBox.right = homeFramePage.getEX() - 2;
-        lilBox.bottom = homeFramePage.getBY() + yBegin + 50;
-        colorBox testBox(point3(255, 255, 255), lilBox);
-        homeFramePage.getLineBoxes().emplace_back(testBox);
-    }
-    //
-}
-
 void infoPageSetup() {
     infoFramePage = windowFrame;
     clearFramePageVectors(infoFramePage);
@@ -149,7 +119,49 @@ void infoPageSetup() {
     infoFramePage.getTextElements().emplace_back(test);
     //
 }
-//
+
+void selectInfoFrame() {
+    cls();
+    infoPageSetup();
+    windowFrame = infoFramePage;
+    cls();
+}
+
+void homePageSetup() {
+    homeFramePage = windowFrame;
+    clearFramePageVectors(homeFramePage);
+    homeFramePage.setTitle("Home");
+
+    //Txt
+    RECT wBox;
+    wBox.left = homeFramePage.getBX() + 2;
+    wBox.top = homeFramePage.getBY() + 50;
+    wBox.right = homeFramePage.getEX();
+    wBox.bottom = homeFramePage.getBY() + 100;
+    text wTxt("Welcome to the whiteavocado tool!", wBox, point3(0, 0, 0), point3(0, 255, 0), 12);
+    homeFramePage.getTextElements().emplace_back(wTxt);
+    //
+
+    //Line test
+    int yBegin = 92;
+    RECT lilBox;
+    lilBox.left = homeFramePage.getBX() + 2;
+    lilBox.top = homeFramePage.getBY() + yBegin;
+    lilBox.right = homeFramePage.getEX() - 2;
+    lilBox.bottom = homeFramePage.getBY() + yBegin + 50;
+    colorBox testBox(point3(255, 255, 255), lilBox);
+    homeFramePage.getLineBoxes().emplace_back(testBox);
+
+    RECT redirInfoBox;
+    redirInfoBox.left = homeFramePage.getBX() + 4;
+    redirInfoBox.top = homeFramePage.getBY() + yBegin + 2;
+    redirInfoBox.right = homeFramePage.getEX() - 4;
+    redirInfoBox.bottom = homeFramePage.getBY() + yBegin + 48;
+    button redirInfoPage(redirInfoBox, []() { selectInfoFrame(); });
+    homeFramePage.getButtons().emplace_back(redirInfoPage);
+    homeFramePage.getLineBoxes().emplace_back(colorBox(point3(0, 0, 0), redirInfoBox));
+    //
+}
 
 void pageSetupLoader() {
     infoPageSetup();
