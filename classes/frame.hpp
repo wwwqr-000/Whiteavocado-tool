@@ -6,6 +6,9 @@ class frame {
         std::string title;
         std::vector<button> buttons;
         std::vector<text> textElements;
+        std::vector<RECT> lineBoxes;
+        std::vector<RECT> filledBoxes;
+        std::vector<line> lineElements;
 
     public:
         frame() {}
@@ -24,6 +27,9 @@ class frame {
         RECT& getBox() { return this->box; }
         std::vector<button>& getButtons() { return this->buttons; }
         std::vector<text>& getTextElements() { return this->textElements; }
+        std::vector<RECT>& getLineBoxes() { return this->lineBoxes; }
+        std::vector<RECT>& getFilledBoxes() { return this->filledBoxes; }
+        std::vector<line>& getLineElements() { return this->lineElements; }
 
         void setBX(int in) { box.left = in; }
         void setBY(int in) { box.top = in; }

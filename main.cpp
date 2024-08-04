@@ -11,6 +11,7 @@
 #include "classes/dimensions.hpp"
 #include "classes/button.hpp"
 #include "classes/text.hpp"
+#include "classes/line.hpp"
 #include "classes/frame.hpp"
 
 using json = nlohmann::json;
@@ -23,10 +24,10 @@ bool active = true;
 bool validDragPos = false;//If the mouse drag is in the title bar of the window.
 HMODULE WDll = LoadLibraryExW(L"whiteavocado64.dll", nullptr, 0);
 
-//Pages
+//frame pages
 frame homeFramePage;
 frame infoFramePage;
-frame
+frame ipinfoFramePage;
 //
 
 //
@@ -68,28 +69,59 @@ void drawBox(RECT box, point3 rgb) {
 
 void drawWindowFrame() {
     drawBox(windowFrame.getBox(), point3(0, 255, 0));
-    drawTxt(getSelfName(), windowFrame.getBX() + 2, windowFrame.getBY(), windowFrame.getEX(), windowFrame.getBY() + 30, 255, 0, 0, 0, 255, 0, 14);
+    drawTxt(windowFrame.getTitle().c_str(), windowFrame.getBX() + 2, windowFrame.getBY(), windowFrame.getEX(), windowFrame.getBY() + 30, 255, 0, 0, 0, 255, 0, 14);
     drawLine(windowFrame.getBX(), windowFrame.getBY() + 22, windowFrame.getEX(), windowFrame.getBY() + 22, 1, 0, 255, 0, false);
     //Closing icon
     drawLine(windowFrame.getEX() - 20, windowFrame.getBY(), windowFrame.getEX(), windowFrame.getBY() + 20, 1, 255, 0, 0, false);
     drawLine(windowFrame.getEX() - 20, windowFrame.getBY() + 20, windowFrame.getEX(), windowFrame.getBY(), 1, 255, 0, 0, false);
     //
+
+    for (auto& txt : windowFrame.getTextElements()) {//Draw text elements of windowFrame
+        point3 tRGB = txt.getTextColor();
+        point3 bRGB = txt.getBackgroundColor();
+        drawTxt(txt.getTxt().c_str(), txt.getBox().left, txt.getBox().top, txt.getBox().right, txt.getBox().bottom, tRGB.x_i, tRGB.y_i, tRGB.z_i, bRGB.x_i, bRGB.y_i, bRGB.z_i, txt.getFontSize());
+    }
 }
 
-void createInfoPageButtons() {
+void clearFramePageVectors(frame& in) {
+    in.getButtons().clear();
+    in.getTextElements().clear();
+    in.getLineBoxes().clear();
+    in.getFilledBoxes().clear();
+    in.getLineElements().clear();
+}
 
+//InfoPage
+void createInfoPageLines() {
+    infoFramePage.getLineElements().clear();
+}
+void createInfoPageButtons() {
+    infoFramePage.getButtons().clear();
+
+}
+
+void createInfoPageText() {
+    infoFramePage.getTextElements().clear();
+    RECT testBox;
+    testBox.left = infoFramePage.getBX() + 2;
+    testBox.top = infoFramePage.getBY() + 50;
+    testBox.right = infoFramePage.getBX() + 50;
+    testBox.bottom = infoFramePage.getBY() + 70;
+    text test("What is this tool?", testBox, point3(0, 0, 0), point3(0, 255, 0), 12);
+    infoFramePage.getTextElements().emplace_back(test);
 }
 
 void infoPageSetup() {
     infoFramePage = windowFrame;
-    infoFramePage.getButtons().clear();
-    infoFramePage.getTextElements().clear();
+    clearFramePageVectors(infoFramePage);
     infoFramePage.setTitle("Info");
+    createInfoPageButtons();
+    createInfoPageText();
 }
+//
 
 void drawScreen() {
     drawWindowFrame();
-
 }
 
 void buttonTrigger(int &x, int &y) {
@@ -135,6 +167,11 @@ void updatePositions(int &x, int &y) {
 
     windowFrame.getButtons().clear();
     createDefaultButtons();
+
+    if (windowFrame.getTitle() == "Info") {
+        infoPageSetup();
+        windowFrame = infoFramePage;
+    }
 }
 
 void mouseBLThread() {//Mousebutton listener callback func
@@ -167,8 +204,9 @@ void tick() {
 }
 
 int main() {
-    windowFrame = frame(10, 10, 710, 510, "Tool");
+    windowFrame = frame(10, 10, 710, 510, "Starting");
     windowFrameSetup();
+    infoPageSetup();
     threads.emplace_back([]{ mouseBLThread(); });
     while (active) {
         tick();
