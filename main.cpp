@@ -10,20 +10,23 @@
 #include "classes/json.hpp"
 #include "classes/dimensions.hpp"
 #include "classes/button.hpp"
+#include "classes/text.hpp"
 #include "classes/frame.hpp"
 
 using json = nlohmann::json;
 
 //Globals
 std::vector<std::thread> threads;
-frame windowFrame;
+frame windowFrame;//Active window frame value
 bool update = true;
 bool active = true;
 bool validDragPos = false;//If the mouse drag is in the title bar of the window.
 HMODULE WDll = LoadLibraryExW(L"whiteavocado64.dll", nullptr, 0);
 
 //Pages
+frame homeFramePage;
 frame infoFramePage;
+frame
 //
 
 //
@@ -73,8 +76,15 @@ void drawWindowFrame() {
     //
 }
 
-void infoPageSetup() {
+void createInfoPageButtons() {
 
+}
+
+void infoPageSetup() {
+    infoFramePage = windowFrame;
+    infoFramePage.getButtons().clear();
+    infoFramePage.getTextElements().clear();
+    infoFramePage.setTitle("Info");
 }
 
 void drawScreen() {

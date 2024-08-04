@@ -5,6 +5,7 @@ class frame {
         RECT box;
         std::string title;
         std::vector<button> buttons;
+        std::vector<text> textElements;
 
     public:
         frame() {}
@@ -22,6 +23,7 @@ class frame {
         std::string& getTitle() { return this->title; }
         RECT& getBox() { return this->box; }
         std::vector<button>& getButtons() { return this->buttons; }
+        std::vector<text>& getTextElements() { return this->textElements; }
 
         void setBX(int in) { box.left = in; }
         void setBY(int in) { box.top = in; }
