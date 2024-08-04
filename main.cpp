@@ -12,6 +12,7 @@
 #include "classes/button.hpp"
 #include "classes/text.hpp"
 #include "classes/line.hpp"
+#include "classes/colorBox.hpp"
 #include "classes/frame.hpp"
 
 using json = nlohmann::json;
@@ -27,7 +28,6 @@ HMODULE WDll = LoadLibraryExW(L"whiteavocado64.dll", nullptr, 0);
 //frame pages
 frame homeFramePage;
 frame infoFramePage;
-frame ipinfoFramePage;
 //
 
 //
@@ -81,6 +81,15 @@ void drawWindowFrame() {
         point3 bRGB = txt.getBackgroundColor();
         drawTxt(txt.getTxt().c_str(), txt.getBox().left, txt.getBox().top, txt.getBox().right, txt.getBox().bottom, tRGB.x_i, tRGB.y_i, tRGB.z_i, bRGB.x_i, bRGB.y_i, bRGB.z_i, txt.getFontSize());
     }
+    for (auto& lineBox : windowFrame.getLineBoxes()) {//Draw a box frame
+        drawBox(lineBox.getBox(), lineBox.getRGB());
+    }
+    for (auto& filledBox : windowFrame.getFilledBoxes()) {//Fill a box
+
+    }
+    for (auto& lineElement : windowFrame.getLineElements()) {//Draw a line
+        drawLine(lineElement.getBegin().x_i, lineElement.getBegin().y_i, lineElement.getEnd().x_i, lineElement.getEnd().y_i, 1, lineElement.getRGB().x_i, lineElement.getRGB().y_i, lineElement.getRGB().z_i, false);
+    }
 }
 
 void clearFramePageVectors(frame& in) {
@@ -91,17 +100,46 @@ void clearFramePageVectors(frame& in) {
     in.getLineElements().clear();
 }
 
-//InfoPage
-void createInfoPageLines() {
-    infoFramePage.getLineElements().clear();
-}
-void createInfoPageButtons() {
-    infoFramePage.getButtons().clear();
+//Frame Pages
+void homePageSetup() {
+    homeFramePage = windowFrame;
+    clearFramePageVectors(homeFramePage);
+    homeFramePage.setTitle("Home");
 
+    //Txt
+    RECT wBox;
+    wBox.left = homeFramePage.getBX() + 2 + 10;
+    wBox.top = homeFramePage.getBY() + 50;
+    wBox.right = homeFramePage.getEX();
+    wBox.bottom = homeFramePage.getBY() + 100;
+    text wTxt("Welcome to the whiteavocado tool!", wBox, point3(0, 0, 0), point3(0, 255, 0), 12);
+    homeFramePage.getTextElements().emplace_back(wTxt);
+    //
+
+    //Line test
+    int yBegin = 102;
+    for (int i = 0; i < 4; i++, yBegin += 50) {
+        RECT lilBox;
+        lilBox.left = homeFramePage.getBX() + 2;
+        lilBox.top = homeFramePage.getBY() + yBegin;
+        lilBox.right = homeFramePage.getEX() - 2;
+        lilBox.bottom = homeFramePage.getBY() + yBegin + 50;
+        colorBox testBox(point3(255, 255, 255), lilBox);
+        homeFramePage.getLineBoxes().emplace_back(testBox);
+    }
+    //
 }
 
-void createInfoPageText() {
-    infoFramePage.getTextElements().clear();
+void infoPageSetup() {
+    infoFramePage = windowFrame;
+    clearFramePageVectors(infoFramePage);
+    infoFramePage.setTitle("Info");
+
+    //Buttons
+
+    //
+
+    //Text elements
     RECT testBox;
     testBox.left = infoFramePage.getBX() + 2;
     testBox.top = infoFramePage.getBY() + 50;
@@ -109,16 +147,14 @@ void createInfoPageText() {
     testBox.bottom = infoFramePage.getBY() + 70;
     text test("What is this tool?", testBox, point3(0, 0, 0), point3(0, 255, 0), 12);
     infoFramePage.getTextElements().emplace_back(test);
-}
-
-void infoPageSetup() {
-    infoFramePage = windowFrame;
-    clearFramePageVectors(infoFramePage);
-    infoFramePage.setTitle("Info");
-    createInfoPageButtons();
-    createInfoPageText();
+    //
 }
 //
+
+void pageSetupLoader() {
+    infoPageSetup();
+    homePageSetup();
+}
 
 void drawScreen() {
     drawWindowFrame();
@@ -142,7 +178,8 @@ void close() {//The close callback for the whole application
     cls();
     Sleep(100);
     cls();
-
+    Sleep(500);
+    cls();
 }
 
 void createDefaultButtons() {
@@ -165,13 +202,18 @@ void updatePositions(int &x, int &y) {
     windowFrame.setBX(x);
     windowFrame.setBY(y);
 
-    windowFrame.getButtons().clear();
-    createDefaultButtons();
+    clearFramePageVectors(windowFrame);
 
     if (windowFrame.getTitle() == "Info") {
         infoPageSetup();
         windowFrame = infoFramePage;
     }
+    else if (windowFrame.getTitle() == "Home") {
+        homePageSetup();
+        windowFrame = homeFramePage;
+    }
+
+    createDefaultButtons();
 }
 
 void mouseBLThread() {//Mousebutton listener callback func
@@ -206,7 +248,8 @@ void tick() {
 int main() {
     windowFrame = frame(10, 10, 710, 510, "Starting");
     windowFrameSetup();
-    infoPageSetup();
+    pageSetupLoader();
+    windowFrame = homeFramePage;
     threads.emplace_back([]{ mouseBLThread(); });
     while (active) {
         tick();
