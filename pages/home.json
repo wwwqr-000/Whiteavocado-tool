@@ -1,0 +1,117 @@
+{
+    "title": "Home page",
+    "mainPage": true,
+    "usingLines": true,
+    "usingButtons": true,
+    "usingTextElems": true,
+    "usingColorBoxes": true,
+    "frame": {
+        "x": "100",
+        "y": "100",
+        "width": "500",
+        "height": "500"
+    },
+    "lines": [
+        {
+            "desc": "diagonal test",
+            "begin": {
+                "x": "0",
+                "y": "0"
+            },
+            "end": {
+                "x": "500",
+                "y": "500"
+            },
+            "rgb": {
+                "r": "255",
+                "g": "0",
+                "b": "0"
+            }
+        },
+        {
+            "desc": "diagonal test inverted",
+            "begin": {
+                "x": "500",
+                "y": "0"
+            },
+            "end": {
+                "x": "0",
+                "y": "500"
+            },
+            "rgb": {
+                "r": "88",
+                "g": "88",
+                "b": "88"
+            }
+        }
+    ],
+    "buttons": [
+        {
+            "desc": "website",
+            "func": "openWebsite",
+            "box": {
+                "left": "0",
+                "top": "50",
+                "right": "100",
+                "bottom": "75"
+            }
+        }
+    ],
+    "textElems": [
+        {
+            "desc": "title1",
+            "txt": "Welcome to the example!",
+            "fontSize": "16",
+            "box": {
+                "left": "0",
+                "top": "10",
+                "right": "100",
+                "bottom": "35"
+            },
+            "rgb": {
+                "background": {
+                    "r": "255",
+                    "g": "255",
+                    "b": "255"
+                },
+                "text": {
+                    "r": "0",
+                    "g": "255",
+                    "b": "0"
+                }
+            }
+        }
+    ],
+    "colorBoxes": [
+        {
+            "desc": "buttonOutline1",
+            "type": "line",
+            "box": {
+                "left": "400",
+                "top": "200",
+                "right": "500",
+                "bottom": "250"
+            },
+            "rgb": {
+                "r": "0",
+                "g": "255",
+                "b": "0"
+            }
+        },
+        {
+            "desc": "fillTest",
+            "type": "filled",
+            "box": {
+                "left": "400",
+                "top": "200",
+                "right": "500",
+                "bottom": "250"
+            },
+            "rgb": {
+                "r": "0",
+                "g": "0",
+                "b": "255"
+            }
+        }
+    ]
+}

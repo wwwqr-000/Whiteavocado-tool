@@ -6,6 +6,7 @@
 #include <iostream>
 #include <memory>
 #include <functional>
+#include <fstream>
 
 #include "classes/json.hpp"
 #include "classes/dimensions.hpp"
@@ -14,6 +15,7 @@
 #include "classes/line.hpp"
 #include "classes/colorBox.hpp"
 #include "classes/frame.hpp"
+#include "classes/page.hpp"
 
 using json = nlohmann::json;
 
@@ -26,11 +28,14 @@ bool validDragPos = false;//If the mouse drag is in the title bar of the window.
 HMODULE WDll = LoadLibraryExW(L"whiteavocado64.dll", nullptr, 0);
 
 //frame pages
+std::vector<frame> pages;
 frame homeFramePage;
 frame infoFramePage;
 //
 
 //
+
+std::string scc(std::string i) { return std::string(i); }//Convert 'as is' string to clean string
 
 auto dpcn(std::string fName) {//DLL function process address from function name
     return GetProcAddress(WDll, fName.c_str());
@@ -252,16 +257,75 @@ void mouseBLThread() {//Mousebutton listener callback func
 }
 
 void tick() {
-    while (active) {
-        if (update) { drawScreen(); }
+    while (active && update) {
+        drawScreen();
     }
+}
+
+int gjpi(std::string i) {//scc + to int
+    std::string out(i);
+    return std::stoi(out);
+}
+
+bool loadPages() {
+    std::ifstream active("pages/active.txt");
+    if (!active.is_open()) { return false; }
+    std::string line;
+
+    while (std::getline(active, line)) {
+        std::ifstream page("pages/" + line + ".json");
+        if (!page.is_open()) {
+            active.close();
+            page.close();
+            return false;
+        }
+
+        std::string content, pageLine;
+        while (std::getline(page, pageLine)) {
+            content += pageLine;
+            content += '\n';
+        }
+
+        auto jp = json::parse(content);
+
+        //Initialize page
+        frame currentPage = windowFrame;
+
+        currentPage.setTitle(std::string(jp["title"]));
+        if (jp["usingLines"]) {
+            for (int i = 0; i < jp["lines"].size(); i++) {
+                //W.I.P
+                //line sLine(point2(gjpi(jp["lines"][i]["begin"]["x"]), gjpi(jp["lines"][i]["begin"]["y"])), point2(gjpi(jp["lines"][i]["end"]["x"]), gjpi(jp["lines"][i]["end"]["y"])), point3(gjpi(jp["lines"][i]["rgb"]["r"]), gjpi(jp["lines"][i]["rgb"]["g"]), gjpi(jp["lines"][i]["rgb"]["b"])));
+            }
+        }
+
+        if (jp["mainPage"]) {
+            currentPage.getBox().left = std::stoi(std::string(jp["frame"]["x"]));
+            currentPage.getBox().top = std::stoi(std::string(jp["frame"]["y"]));
+            currentPage.getBox().right = std::stoi(std::string(jp["frame"]["width"]));
+            currentPage.getBox().bottom = std::stoi(std::string(jp["frame"]["height"]));
+            windowFrame = currentPage;
+        }
+
+
+        pages.emplace_back(currentPage);
+        //
+
+        page.close();
+    }
+
+    active.close();
+    return true;
 }
 
 int main() {
     windowFrame = frame(10, 10, 710, 510, "Starting");
     windowFrameSetup();
     pageSetupLoader();
-    windowFrame = homeFramePage;
+    //windowFrame = homeFramePage;
+    if (!loadPages()) {
+        std::cout << "Could not load pages\n";
+    }
     threads.emplace_back([]{ mouseBLThread(); });
     while (active) {
         tick();
