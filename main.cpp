@@ -25,6 +25,7 @@ std::vector<std::thread> threads;
 frame windowFrame;//Active window frame value
 bool update = true;
 bool active = true;
+bool startup = true;
 bool validDragPos = false;//If the mouse drag is in the title bar of the window.
 HMODULE WDll = LoadLibraryExW(L"whiteavocado64.dll", nullptr, 0);
 std::vector<namedFunction> pageFunctions;
@@ -45,6 +46,11 @@ auto dpcn(std::string fName) {//DLL function process address from function name
 
 void free() {
     FreeLibrary(WDll);
+}
+
+int gjpi(std::string i) {//scc + to int
+    std::string out(i);
+    return std::stoi(out);
 }
 
 bool callPageFunction(std::string name) {
@@ -122,7 +128,7 @@ void drawWindowFrame() {
         drawBox(lineBox.getBox(), lineBox.getRGB());
     }
     for (auto& filledBox : windowFrame.getFilledBoxes()) {//Fill a box
-
+        fillRect(filledBox.getBox().left, filledBox.getBox().top, filledBox.getBox().right, filledBox.getBox().bottom, filledBox.getRGB().x_i, filledBox.getRGB().y_i, filledBox.getRGB().z_i);
     }
     for (auto& lineElement : windowFrame.getLineElements()) {//Draw a line
         drawLine(lineElement.getBegin().x_i, lineElement.getBegin().y_i, lineElement.getEnd().x_i, lineElement.getEnd().y_i, 1, lineElement.getRGB().x_i, lineElement.getRGB().y_i, lineElement.getRGB().z_i, false);
@@ -245,14 +251,131 @@ void windowFrameSetup() {
     createDefaultButtons();
 }
 
+bool loadPages() {
+    pages.clear();
+    std::ifstream active("pages/active.txt");
+    if (!active.is_open()) { return false; }
+    std::string mainLine;
+
+    while (std::getline(active, mainLine)) {
+        std::ifstream page("pages/" + mainLine + ".json");
+        if (!page.is_open()) {
+            active.close();
+            page.close();
+            return false;
+        }
+
+        std::string content, pageLine;
+        while (std::getline(page, pageLine)) {
+            content += pageLine;
+            content += '\n';
+        }
+
+        auto jp = json::parse(content);
+        content = "";
+
+        RECT frameBox;
+        if (startup) {
+            startup = false;
+            frameBox.left = std::stoi(std::string(jp["frame"]["left"]));
+            frameBox.top = std::stoi(std::string(jp["frame"]["top"]));
+            frameBox.right = std::stoi(std::string(jp["frame"]["right"]));
+            frameBox.bottom = std::stoi(std::string(jp["frame"]["bottom"]));
+        }
+        else {
+            frameBox = windowFrame.getBox();
+        }
+
+        //Initialize page
+        frame currentPage = windowFrame;
+
+        currentPage.setTitle(std::string(jp["title"]));
+
+        if (jp["usingLines"]) {
+            for (int i = 0; i < jp["lines"].size(); i++) {
+                line sLine(point2(static_cast<int>(frameBox.left + gjpi(jp["lines"][i]["begin"]["x"])), static_cast<int>(frameBox.top + gjpi(jp["lines"][i]["begin"]["y"]))), point2(static_cast<int>(frameBox.left + gjpi(jp["lines"][i]["end"]["x"])), static_cast<int>(frameBox.top + gjpi(jp["lines"][i]["end"]["y"]))), point3(gjpi(jp["lines"][i]["rgb"]["r"]), gjpi(jp["lines"][i]["rgb"]["g"]), gjpi(jp["lines"][i]["rgb"]["b"])));
+                currentPage.getLineElements().emplace_back(sLine);
+            }
+        }
+
+        if (jp["usingButtons"]) {
+            for (int i = 0; i < jp["buttons"].size(); i++) {
+                RECT box;
+                box.left = frameBox.left + gjpi(jp["buttons"][i]["box"]["left"]);
+                box.top = frameBox.top + gjpi(jp["buttons"][i]["box"]["top"]);
+                box.right = frameBox.left + gjpi(jp["buttons"][i]["box"]["right"]);
+                box.bottom = frameBox.top + gjpi(jp["buttons"][i]["box"]["bottom"]);
+                button currentButton(box, getPageCallbackFunc(scc(jp["buttons"][i]["func"])));
+                currentPage.getButtons().emplace_back(currentButton);
+            }
+        }
+
+        if (jp["usingTextElems"]) {
+            for (int i = 0; i < jp["textElems"].size(); i++) {
+                RECT box;
+                box.left = frameBox.left + gjpi(jp["textElems"][i]["box"]["left"]);
+                box.top = frameBox.top + gjpi(jp["textElems"][i]["box"]["top"]);
+                box.right = frameBox.right + gjpi(jp["textElems"][i]["box"]["right"]);
+                box.bottom = frameBox.bottom + gjpi(jp["textElems"][i]["box"]["bottom"]);
+                currentPage.getTextElements().emplace_back(text(scc(jp["textElems"][i]["txt"]), box, point3(gjpi(jp["textElems"][i]["rgb"]["text"]["r"]), gjpi(jp["textElems"][i]["rgb"]["text"]["g"]), gjpi(jp["textElems"][i]["rgb"]["text"]["b"])), point3(gjpi(jp["textElems"][i]["rgb"]["background"]["r"]), gjpi(jp["textElems"][i]["rgb"]["background"]["g"]), gjpi(jp["textElems"][i]["rgb"]["background"]["b"])), gjpi(jp["textElems"][i]["fontSize"])));
+            }
+        }
+
+        if (jp["usingColorBoxes"]) {
+            for (int i = 0; i < jp["colorBoxes"].size(); i++) {
+                RECT box;
+                box.left = static_cast<int>(frameBox.left + gjpi(jp["colorBoxes"][i]["box"]["left"]));
+                box.top = static_cast<int>(frameBox.top + gjpi(jp["colorBoxes"][i]["box"]["top"]));
+                box.right = static_cast<int>(frameBox.left + gjpi(jp["colorBoxes"][i]["box"]["right"]));
+                box.bottom = static_cast<int>(frameBox.top + gjpi(jp["colorBoxes"][i]["box"]["bottom"]));
+                auto rgb = jp["colorBoxes"][i]["rgb"];
+                colorBox cb(point3(static_cast<int>(gjpi(rgb["r"])), static_cast<int>(gjpi(rgb["g"])), static_cast<int>(gjpi(rgb["b"]))), box);
+                if (scc(jp["colorBoxes"][i]["type"]) == "line") {
+                    currentPage.getLineBoxes().emplace_back(cb);
+                }
+                else {
+                    currentPage.getFilledBoxes().emplace_back(cb);
+                }
+            }
+        }
+
+        if (jp["mainPage"]) {
+            currentPage.getBox() = frameBox;
+            windowFrame = currentPage;
+        }
+
+
+        pages.emplace_back(currentPage);
+        //
+
+        page.close();
+    }
+
+    active.close();
+    return true;
+}
+
 void updatePositions(int &x, int &y) {
     windowFrame.setEX((windowFrame.getEX() - windowFrame.getBX()) + x);
     windowFrame.setEY((windowFrame.getEY() - windowFrame.getBY()) + y);
     windowFrame.setBX(x);
     windowFrame.setBY(y);
 
-    clearFramePageVectors(windowFrame);
+    loadPages();
 
+    clearFramePageVectors(windowFrame);
+    std::string currentPageTitle = windowFrame.getTitle();
+    for (auto& cFrame : pages) {
+        if (cFrame.getTitle() == currentPageTitle) {
+            cFrame.setEX((windowFrame.getEX() - windowFrame.getBX()) + x);
+            cFrame.setEY((windowFrame.getEY() - windowFrame.getBY()) + y);
+            cFrame.setBX(x);
+            cFrame.setBY(y);
+            windowFrame = cFrame;
+        }
+    }
+
+    /*
     if (windowFrame.getTitle() == "Info") {
         infoPageSetup();
         windowFrame = infoFramePage;
@@ -260,9 +383,11 @@ void updatePositions(int &x, int &y) {
     else if (windowFrame.getTitle() == "Home") {
         homePageSetup();
         windowFrame = homeFramePage;
-    }
+    }*/
 
     createDefaultButtons();
+
+    std::cout << pages.size() << "\n";
 }
 
 void mouseBLThread() {//Mousebutton listener callback func
@@ -292,77 +417,6 @@ void tick() {
     while (active && update) {
         drawScreen();
     }
-}
-
-int gjpi(std::string i) {//scc + to int
-    std::string out(i);
-    return std::stoi(out);
-}
-
-bool loadPages() {
-    std::ifstream active("pages/active.txt");
-    if (!active.is_open()) { return false; }
-    std::string mainLine;
-
-    while (std::getline(active, mainLine)) {
-        std::ifstream page("pages/" + mainLine + ".json");
-        if (!page.is_open()) {
-            active.close();
-            page.close();
-            return false;
-        }
-
-        std::string content, pageLine;
-        while (std::getline(page, pageLine)) {
-            content += pageLine;
-            content += '\n';
-        }
-
-        auto jp = json::parse(content);
-        content = "";
-
-        //Initialize page
-        frame currentPage = windowFrame;
-
-        currentPage.setTitle(std::string(jp["title"]));
-
-        if (jp["usingLines"]) {
-            for (int i = 0; i < jp["lines"].size(); i++) {
-                line sLine(point2(windowFrame.getBX() + gjpi(jp["lines"][i]["begin"]["x"]), windowFrame.getBY() + gjpi(jp["lines"][i]["begin"]["y"])), point2(windowFrame.getEX() + gjpi(jp["lines"][i]["end"]["x"]), windowFrame.getEY() + gjpi(jp["lines"][i]["end"]["y"])), point3(gjpi(jp["lines"][i]["rgb"]["r"]), gjpi(jp["lines"][i]["rgb"]["g"]), gjpi(jp["lines"][i]["rgb"]["b"])));
-                currentPage.getLineElements().emplace_back(sLine);
-            }
-        }
-
-        if (jp["usingButtons"]) {
-            for (int i = 0; i < jp["buttons"].size(); i++) {
-                RECT box;
-                box.left = gjpi(jp["buttons"][i]["box"]["left"]);
-                box.top = gjpi(jp["buttons"][i]["box"]["top"]);
-                box.right = gjpi(jp["buttons"][i]["box"]["right"]);
-                box.bottom = gjpi(jp["buttons"][i]["box"]["bottom"]);
-                auto func = getPageCallbackFunc(scc(jp["buttons"][i]["func"]));
-                button currentButton(box, func);
-                currentPage.getButtons().emplace_back(currentButton);
-            }
-        }
-
-        if (jp["mainPage"]) {
-            currentPage.getBox().left = std::stoi(std::string(jp["frame"]["x"]));
-            currentPage.getBox().top = std::stoi(std::string(jp["frame"]["y"]));
-            currentPage.getBox().right = std::stoi(std::string(jp["frame"]["width"]));
-            currentPage.getBox().bottom = std::stoi(std::string(jp["frame"]["height"]));
-            windowFrame = currentPage;
-        }
-
-
-        pages.emplace_back(currentPage);
-        //
-
-        page.close();
-    }
-
-    active.close();
-    return true;
 }
 
 int main() {

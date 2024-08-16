@@ -6,10 +6,10 @@
     "usingTextElems": true,
     "usingColorBoxes": true,
     "frame": {
-        "x": "100",
-        "y": "100",
-        "width": "500",
-        "height": "500"
+        "left": "100",
+        "top": "100",
+        "right": "500",
+        "bottom": "500"
     },
     "lines": [
         {
@@ -19,8 +19,8 @@
                 "y": "0"
             },
             "end": {
-                "x": "500",
-                "y": "500"
+                "x": "400",
+                "y": "400"
             },
             "rgb": {
                 "r": "255",
@@ -31,12 +31,12 @@
         {
             "desc": "diagonal test inverted",
             "begin": {
-                "x": "500",
+                "x": "400",
                 "y": "0"
             },
             "end": {
                 "x": "0",
-                "y": "500"
+                "y": "400"
             },
             "rgb": {
                 "r": "88",
@@ -61,10 +61,10 @@
         {
             "desc": "title1",
             "txt": "Welcome to the example!",
-            "fontSize": "16",
+            "fontSize": "10",
             "box": {
-                "left": "0",
-                "top": "10",
+                "left": "2",
+                "top": "25",
                 "right": "100",
                 "bottom": "35"
             },
@@ -87,30 +87,30 @@
             "desc": "buttonOutline1",
             "type": "line",
             "box": {
-                "left": "400",
+                "left": "2",
                 "top": "200",
-                "right": "500",
+                "right": "100",
                 "bottom": "250"
             },
             "rgb": {
-                "r": "0",
+                "r": "255",
                 "g": "255",
                 "b": "0"
             }
         },
         {
             "desc": "fillTest",
-            "type": "filled",
+            "type": "fill",
             "box": {
-                "left": "400",
-                "top": "200",
-                "right": "500",
-                "bottom": "250"
+                "left": "300",
+                "top": "300",
+                "right": "400",
+                "bottom": "400"
             },
             "rgb": {
-                "r": "0",
-                "g": "0",
-                "b": "255"
+                "r": "88",
+                "g": "88",
+                "b": "88"
             }
         }
     ]
