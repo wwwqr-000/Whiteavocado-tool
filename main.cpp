@@ -11,6 +11,7 @@
 #include "classes/json.hpp"
 #include "classes/dimensions.hpp"
 #include "classes/button.hpp"
+#include "classes/namedFunction.hpp"
 #include "classes/text.hpp"
 #include "classes/line.hpp"
 #include "classes/colorBox.hpp"
@@ -26,6 +27,7 @@ bool update = true;
 bool active = true;
 bool validDragPos = false;//If the mouse drag is in the title bar of the window.
 HMODULE WDll = LoadLibraryExW(L"whiteavocado64.dll", nullptr, 0);
+std::vector<namedFunction> pageFunctions;
 
 //frame pages
 std::vector<frame> pages;
@@ -43,6 +45,36 @@ auto dpcn(std::string fName) {//DLL function process address from function name
 
 void free() {
     FreeLibrary(WDll);
+}
+
+bool callPageFunction(std::string name) {
+    for (auto& nf : pageFunctions) {
+        if (nf.getName() == name) {
+            nf.click();
+            return true;
+        }
+    }
+    return false;
+}
+
+auto getPageCallbackFunc(std::string name) {
+    for (auto& nf : pageFunctions) {
+        if (nf.getName() == name) {
+            return nf.getCallback();
+        }
+    }
+    std::function<void()> test;
+    return test;
+}
+
+//External page functions
+void website() {
+    system("start https://google.com");
+}
+//
+
+void pageFunctionRegistry() {
+    pageFunctions.emplace_back(namedFunction(website, "openWebsite"));
 }
 
 using DR = void (__cdecl*)(int, int, int, int, int, int, int, int, bool);
@@ -270,10 +302,10 @@ int gjpi(std::string i) {//scc + to int
 bool loadPages() {
     std::ifstream active("pages/active.txt");
     if (!active.is_open()) { return false; }
-    std::string line;
+    std::string mainLine;
 
-    while (std::getline(active, line)) {
-        std::ifstream page("pages/" + line + ".json");
+    while (std::getline(active, mainLine)) {
+        std::ifstream page("pages/" + mainLine + ".json");
         if (!page.is_open()) {
             active.close();
             page.close();
@@ -287,15 +319,30 @@ bool loadPages() {
         }
 
         auto jp = json::parse(content);
+        content = "";
 
         //Initialize page
         frame currentPage = windowFrame;
 
         currentPage.setTitle(std::string(jp["title"]));
+
         if (jp["usingLines"]) {
             for (int i = 0; i < jp["lines"].size(); i++) {
-                //W.I.P
-                //line sLine(point2(gjpi(jp["lines"][i]["begin"]["x"]), gjpi(jp["lines"][i]["begin"]["y"])), point2(gjpi(jp["lines"][i]["end"]["x"]), gjpi(jp["lines"][i]["end"]["y"])), point3(gjpi(jp["lines"][i]["rgb"]["r"]), gjpi(jp["lines"][i]["rgb"]["g"]), gjpi(jp["lines"][i]["rgb"]["b"])));
+                line sLine(point2(windowFrame.getBX() + gjpi(jp["lines"][i]["begin"]["x"]), windowFrame.getBY() + gjpi(jp["lines"][i]["begin"]["y"])), point2(windowFrame.getEX() + gjpi(jp["lines"][i]["end"]["x"]), windowFrame.getEY() + gjpi(jp["lines"][i]["end"]["y"])), point3(gjpi(jp["lines"][i]["rgb"]["r"]), gjpi(jp["lines"][i]["rgb"]["g"]), gjpi(jp["lines"][i]["rgb"]["b"])));
+                currentPage.getLineElements().emplace_back(sLine);
+            }
+        }
+
+        if (jp["usingButtons"]) {
+            for (int i = 0; i < jp["buttons"].size(); i++) {
+                RECT box;
+                box.left = gjpi(jp["buttons"][i]["box"]["left"]);
+                box.top = gjpi(jp["buttons"][i]["box"]["top"]);
+                box.right = gjpi(jp["buttons"][i]["box"]["right"]);
+                box.bottom = gjpi(jp["buttons"][i]["box"]["bottom"]);
+                auto func = getPageCallbackFunc(scc(jp["buttons"][i]["func"]));
+                button currentButton(box, func);
+                currentPage.getButtons().emplace_back(currentButton);
             }
         }
 
@@ -319,6 +366,7 @@ bool loadPages() {
 }
 
 int main() {
+    pageFunctionRegistry();//Initialize the named functions
     windowFrame = frame(10, 10, 710, 510, "Starting");
     windowFrameSetup();
     pageSetupLoader();
