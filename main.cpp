@@ -16,7 +16,6 @@
 #include "classes/line.hpp"
 #include "classes/colorBox.hpp"
 #include "classes/frame.hpp"
-#include "classes/page.hpp"
 
 using json = nlohmann::json;
 
@@ -260,6 +259,8 @@ void moveToPage(std::string targetTitle) {
     updatePositions(x, y);
     Sleep(20);
     cls();
+    Sleep(20);
+    cls();
 }
 
 //External page functions
@@ -359,30 +360,35 @@ void tick() {
     }
 }
 
-/*
-std::string getMainPage() {
+std::string getMainPageTitle() {
     std::ifstream top_layer("pages/active.txt");
     if (!top_layer.is_open()) {
         return "Error: tl 404";
     }
-    std::string tl_line, il_line;
+    std::string tl_line, il_line, content;
     while (std::getline(top_layer, tl_line)) {
         std::ifstream il("pages/" + tl_line + ".json");
-        if (!li.is_open()) {
-            return "Error: li 404";
+        if (!il.is_open()) { return "Error: il 404"; }
+
+        while (std::getline(il, il_line)) {
+            content += il_line;
         }
 
+        auto jp = json::parse(content);
+        content = "";
+        if (jp["mainPage"]) {
+            return scc(jp["title"]);
+        }
 
     }
 
     top_layer.close();
-
     return "Error: 404";
-}*///W.I.P
+}
 
 int main() {
     pageFunctionRegistry();//Initialize the named functions
-    windowFrame = frame(10, 10, 710, 510, "Home page");//Startup frame
+    windowFrame = frame(10, 10, 710, 510, getMainPageTitle());//Startup frame
     windowFrameSetup();
     //windowFrame = homeFramePage;
     if (!loadPages()) {
