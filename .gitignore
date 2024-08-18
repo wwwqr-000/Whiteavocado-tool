@@ -12,3 +12,4 @@ bin/Debug/wwwqr.exe
 bin/Debug/whiteavocado64.dll
 bin/Release/tool.exe
 obj/Release/main.o
+bin/Release/Whiteavocado-tool.exe
